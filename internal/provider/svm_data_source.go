@@ -46,7 +46,7 @@ type SVMDataSourceModel struct {
 	NIS                 *NISDataSourceModel            `tfsdk:"nis"`
 	NVME                types.Bool                     `tfsdk:"nvme"`
 	NSSwitch            *NSSwitchDataSourceModel       `tfsdk:"nsswitch"`
-	Routes              types.List                     `tfsdk:"routes"`
+	Routes              []RouteDataSourceModel         `tfsdk:"routes"`
 	S3                  *S3DataSourceModel             `tfsdk:"s3"`
 	Snapmirror          *SnapmirrorDataSourceModel     `tfsdk:"snapmirror"`
 	SnapshotPolicy      *SnapshotPolicyDataSourceModel `tfsdk:"snapshot_policy"`
@@ -200,7 +200,37 @@ type NISDataSourceModel struct {
 	Servers []types.String `tfsdk:"servers"`
 }
 
-type NSSwitchDataSourceModel struct{}
+/*
+****************************
+
+	nsswitch
+
+*****************************
+*/
+type NSSwitchDataSourceModel struct {
+	Group    []types.String `tfsdk:"group"`
+	Hosts    []types.String `tfsdk:"hosts"`
+	Namemap  []types.String `tfsdk:"namemap"`
+	Netgroup []types.String `tfsdk:"netgroup"`
+	Passwd   []types.String `tfsdk:"passwd"`
+}
+
+/*
+****************************
+
+	routes
+
+*****************************
+*/
+type RouteDataSourceModel struct {
+	Destination RouteDestinationDataSourceModel `tfsdk:"destination"`
+	Gateway     types.String                    `tfsdk:"gateway"`
+}
+type RouteDestinationDataSourceModel struct {
+	Address types.String `tfsdk:"address"`
+	Family  types.String `tfsdk:"family"`
+	Netmask types.String `tfsdk:"netmask"`
+}
 
 type S3DataSourceModel struct{}
 
@@ -641,17 +671,56 @@ func (d *SVMDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 		data.LDAP.Servers = append(data.LDAP.Servers, types.String{Value: s})
 	}
 
+	// NFS
 	data.NFS = types.Bool{Value: SVM.NFS.Enabled}
 
+	// NIS
 	nis := NewNISDataSourceModel()
 	if SVM.NIS.Domain != nil {
 		nis.Domain = types.String{Value: *SVM.NIS.Domain}
 	}
 	data.NIS = &nis
-
 	for _, s := range SVM.LDAP.Servers {
 		data.NIS.Servers = append(data.NIS.Servers, types.String{Value: s})
 	}
+
+	// NSSwitch
+	nsswitch := NSSwitchDataSourceModel{}
+	for _, a := range SVM.NSSwitch.Group {
+		nsswitch.Group = append(nsswitch.Group, types.String{Value: a})
+	}
+	for _, a := range SVM.NSSwitch.Hosts {
+		nsswitch.Hosts = append(nsswitch.Hosts, types.String{Value: a})
+	}
+	for _, a := range SVM.NSSwitch.Namemap {
+		nsswitch.Namemap = append(nsswitch.Namemap, types.String{Value: a})
+	}
+	for _, a := range SVM.NSSwitch.Netgroup {
+		nsswitch.Netgroup = append(nsswitch.Netgroup, types.String{Value: a})
+	}
+	for _, a := range SVM.NSSwitch.Passwd {
+		nsswitch.Passwd = append(nsswitch.Passwd, types.String{Value: a})
+	}
+	data.NSSwitch = &nsswitch
+
+	// NVME
+	data.NVME = types.Bool{Value: SVM.NVME.Enabled}
+
+	// Routes
+	routes := []RouteDataSourceModel{}
+
+	for _, r := range SVM.Routes {
+		route := RouteDataSourceModel{
+			Destination: RouteDestinationDataSourceModel{
+				Address: types.String{Value: r.Destination.Address},
+				Family:  types.String{Value: r.Destination.Family},
+				Netmask: types.String{Value: r.Destination.Netmask},
+			},
+		}
+		routes = append(routes, route)
+	}
+	data.Routes = routes
+
 	// Write logs using the tflog package
 	// Documentation: https://terraform.io/plugin/log
 	tflog.Trace(ctx, "read a data source")

@@ -25,6 +25,9 @@ type SVM struct {
 	LDAP                *LDAP         `json:"ldap,omitempty"`
 	NFS                 *NFS          `json:"nfs,omitempty"`
 	NIS                 *NIS          `json:"nis,omitempty"`
+	NSSwitch            *NSSwitch     `json:"nsswitch,omitempty"`
+	NVME                *NVME         `json:"nvme,omitempty"`
+	Routes              []Route       `json:"routes,omitempty"`
 }
 
 type SVMCIFS struct {
@@ -44,46 +47,68 @@ type SVMDNS struct {
 }
 
 type FCInterface struct {
-	DataProtocal string `json:"data_protocol"`
-	Name         string `json:"name"`
-	UUID         string `json:"uuid"`
+	DataProtocal string `json:"data_protocol,omitempty"`
+	Name         string `json:"name,omitempty"`
+	UUID         string `json:"uuid,omitempty"`
 }
 
 type FCP struct {
 	Enabled bool `json:"enabled"`
 }
 type IPInterface struct {
-	IP            IPInterfaceIP `json:"ip"`
-	Name          string        `json:"name"`
-	ServicePolicy *string       `json:"service_policy"`
-	Services      []string      `json:"services"`
-	UUID          string        `json:"uuid"`
+	IP            IPInterfaceIP `json:"ip,omitempty"`
+	Name          string        `json:"name,omitempty"`
+	ServicePolicy *string       `json:"service_policy,omitempty"`
+	Services      []string      `json:"services,omitempty"`
+	UUID          string        `json:"uuid,omitempty"`
 }
 
 type IPInterfaceIP struct {
-	Address string  `json:"address"`
-	Netmask *string `json:"netmask"`
+	Address string  `json:"address,omitempty"`
+	Netmask *string `json:"netmask,omitempty"`
 }
 type ISCSI struct {
-	Enabled bool `json:"enabled"`
+	Enabled bool `json:"enabled,omitempty"`
 }
 
 type LDAP struct {
-	ADDomain *string  `json:"ad_domain"`
-	BaseDN   *string  `json:"base_dn"`
-	BindDN   *string  `json:"bind_dn"`
-	Enabled  bool     `json:"enabled"`
-	Servers  []string `json:"servers"`
+	ADDomain *string  `json:"ad_domain,omitempty"`
+	BaseDN   *string  `json:"base_dn,omitempty"`
+	BindDN   *string  `json:"bind_dn,omitempty"`
+	Enabled  bool     `json:"enabled,omitempty"`
+	Servers  []string `json:"servers,omitempty"`
 }
 
 type NFS struct {
-	Enabled bool `json:"enabled"`
+	Enabled bool `json:"enabled,omitempty"`
 }
 
 type NIS struct {
-	Domain  *string  `json:"domain"`
-	Enabled bool     `json:"enabled"`
-	Servers []string `json:"servers"`
+	Domain  *string  `json:"domain,omitempty"`
+	Enabled bool     `json:"enabled,omitempty"`
+	Servers []string `json:"servers,omitempty"`
+}
+
+type NSSwitch struct {
+	Group    []string `json:"group,omitempty"`
+	Hosts    []string `json:"hosts,omitempty"`
+	Namemap  []string `json:"namemap,omitempty"`
+	Netgroup []string `json:"netgroup,omitempty"`
+	Passwd   []string `json:"passwd,omitempty"`
+}
+
+type NVME struct {
+	Enabled bool `json:"enabled"`
+}
+
+type Route struct {
+	Destination RouteDestination `json:"destination,omitempty"`
+	Gateway     string           `json:"gateway,omitempty"`
+}
+type RouteDestination struct {
+	Address string `json:"address,omitempty"`
+	Family  string `json:"family,omitempty"`
+	Netmask string `json:"netmask,omitempty"`
 }
 
 func (c *Client) GetSVM(uuid string) (*SVM, error) {
