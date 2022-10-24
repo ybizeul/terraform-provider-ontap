@@ -540,18 +540,19 @@ func (d *SVMDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 				OrganizationalUnit: types.String{Value: SVM.CIFS.ADDomain.OrganizationalUnit},
 			}
 		}
-
+		cifs.Enabled = types.Bool{Value: SVM.CIFS.Enabled}
 		data.CIFS = &cifs
 	}
 
 	// This code commented implements CIFS settings with types.Object but the syntax
 	// of repeated AttrTypes didn't look like a good pattern.
 	// Instead, we replaced :
-	// CIFS                types.Object       `tfsdk:"cifs"`
+	//
+	// CIFS                types.Object         `tfsdk:"cifs"`
 	//
 	// by
 	//
-	// CIFS                *CIFSDataSourceModel       `tfsdk:"cifs"`
+	// CIFS                *CIFSDataSourceModel `tfsdk:"cifs"`
 	//
 	// in the model
 	//
