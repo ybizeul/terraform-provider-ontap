@@ -20,6 +20,11 @@ type SVM struct {
 	FCP                 FCP           `json:"fcp"`
 	IPInterfaces        []IPInterface `json:"ip_interfaces"`
 	IPSpace             UUIDRef       `json:"ipspace,omitempty"`
+	ISCSI               ISCSI         `json:"iscsi,omitempty"`
+	Language            string        `json:"language,omitempty"`
+	LDAP                *LDAP         `json:"ldap,omitempty"`
+	NFS                 *NFS          `json:"nfs,omitempty"`
+	NIS                 *NIS          `json:"nis,omitempty"`
 }
 
 type SVMCIFS struct {
@@ -59,26 +64,27 @@ type IPInterfaceIP struct {
 	Address string  `json:"address"`
 	Netmask *string `json:"netmask"`
 }
+type ISCSI struct {
+	Enabled bool `json:"enabled"`
+}
 
-// This is the JSON representation of a Qtree for REST Create / Update
+type LDAP struct {
+	ADDomain *string  `json:"ad_domain"`
+	BaseDN   *string  `json:"base_dn"`
+	BindDN   *string  `json:"bind_dn"`
+	Enabled  bool     `json:"enabled"`
+	Servers  []string `json:"servers"`
+}
 
-// func (svm SVM) RestMarshall() ([]byte, error) {
-// 	qtree_json := qtree
+type NFS struct {
+	Enabled bool `json:"enabled"`
+}
 
-// 	if qtree_json.SVMUUID != "" {
-// 		qtree_json.SVM = UUIDRef{UUID: qtree_json.SVMUUID}
-// 	}
-// 	qtree_json.SVMUUID = ""
-
-// 	if qtree_json.SVMUUID != "" {
-// 		qtree_json.Volume = UUIDRef{UUID: qtree_json.VolumeUUID}
-// 	}
-// 	qtree_json.VolumeUUID = ""
-
-// 	qtree_json.UUID = ""
-
-// 	return json.Marshal(qtree_json)
-// }
+type NIS struct {
+	Domain  *string  `json:"domain"`
+	Enabled bool     `json:"enabled"`
+	Servers []string `json:"servers"`
+}
 
 func (c *Client) GetSVM(uuid string) (*SVM, error) {
 	// s := strings.Split(uuid, "/")
