@@ -33,7 +33,7 @@ type SVMDataSourceModel struct {
 	Certificate         types.String               `tfsdk:"certificate"`
 	CIFS                *CIFSDataSourceModel       `tfsdk:"cifs"`
 	Comment             types.String               `tfsdk:"comment"`
-	DNS                 types.Map                  `tfsdk:"dns"`
+	DNS                 *DNSDataSourceModel        `tfsdk:"dns"`
 	FCInterfaces        types.List                 `tfsdk:"fc_interfaces"`
 	FCP                 types.Bool                 `tfsdk:"fcp"`
 	IPInterfaces        types.List                 `tfsdk:"ip_interfaces"`
@@ -76,6 +76,11 @@ func NewCIFSDataSourceModel() CIFSDataSourceModel {
 type ADDomainDataSourceModel struct {
 	FQDN               types.String `tfsdk:"fqdn"`
 	OrganizationalUnit types.String `tfsdk:"organizational_unit"`
+}
+
+type DNSDataSourceModel struct {
+	Domains []types.String `tfsdk:"domains"`
+	Servers []types.String `tfsdk:"servers"`
 }
 
 func (d *SVMDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -159,20 +164,26 @@ func (d *SVMDataSource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagn
 				},
 				"dns": {
 					Optional: true,
-					Attributes: tfsdk.MapNestedAttributes(map[string]tfsdk.Attribute{
-						"domains": {
-							Required: true,
-							Type: types.ListType{
-								ElemType: types.StringType,
-							},
+					Type: types.ObjectType{
+						AttrTypes: map[string]attr.Type{
+							"domains": types.ListType{ElemType: types.StringType},
+							"servers": types.ListType{ElemType: types.StringType},
 						},
-						"servers": {
-							Required: true,
-							Type: types.ListType{
-								ElemType: types.StringType,
-							},
-						},
-					}),
+					},
+					// Attributes: tfsdk.MapNestedAttributes(map[string]tfsdk.Attribute{
+					// 	"domains": {
+					// 		Required: true,
+					// 		Type: types.ListType{
+					// 			ElemType: types.StringType,
+					// 		},
+					// 	},
+					// 	"servers": {
+					// 		Required: true,
+					// 		Type: types.ListType{
+					// 			ElemType: types.StringType,
+					// 		},
+					// 	},
+					// }),
 				},
 				"fc_interfaces": {
 					Optional: true,
@@ -498,9 +509,10 @@ func (d *SVMDataSource) Configure(ctx context.Context, req datasource.ConfigureR
 
 func (d *SVMDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var data SVMDataSourceModel
-
 	// Read Terraform configuration data into the model
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
+
+	//resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
 		return
@@ -517,6 +529,7 @@ func (d *SVMDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 	// For the purposes of this example code, hardcoding a response value to
 	// save into the Terraform state.
 
+	// UUID
 	data.UUID = types.String{Value: SVM.UUID}
 
 	data.Aggregates = []AggregateDataSourceModel{}
@@ -527,6 +540,10 @@ func (d *SVMDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 		})
 	}
 
+	// AggregatesDelegated
+	data.AggregatesDelegated = types.Bool{Value: SVM.AggregatesDelegated}
+
+	// CIFS
 	if SVM.CIFS != nil {
 		cifs := NewCIFSDataSourceModel()
 
@@ -586,8 +603,19 @@ func (d *SVMDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 	// 	data.CIFS = cifs
 	// }
 
-	data.AggregatesDelegated = types.Bool{Value: SVM.AggregatesDelegated}
+	// Comment
+	data.Comment = types.String{Value: SVM.Comment}
 
+	// DNS
+	data.DNS = &DNSDataSourceModel{}
+	for _, d := range SVM.DNS.Domains {
+		data.DNS.Domains = append(data.DNS.Domains, types.String{Value: d})
+	}
+	for _, d := range SVM.DNS.Servers {
+		data.DNS.Servers = append(data.DNS.Servers, types.String{Value: d})
+	}
+
+	// Name
 	data.Name = types.String{Value: SVM.Name}
 
 	// Write logs using the tflog package

@@ -12,10 +12,12 @@ type SVM struct {
 	Name                string    `json:"name,omitempty"`
 	Aggregates          []UUIDRef `json:"aggregates,omitempty"`
 	AggregatesDelegated bool      `json:"aggregates_delegated,omitempty"`
+	CIFS                *SVMCIFS  `json:"cifs,omitempty"`
+	Comment             string    `json:"comment"`
+	DNS                 SVMDNS    `json:"dns"`
 	CertificateJSON     UUIDRef   `json:"certificate,omitempty"`
 	Certificate         string
-	CIFS                *SVMCIFS `json:"cifs,omitempty"`
-	IPSpace             UUIDRef  `json:"ipspace,omitempty"`
+	IPSpace             UUIDRef `json:"ipspace,omitempty"`
 }
 
 type SVMCIFS struct {
@@ -27,6 +29,11 @@ type SVMCIFS struct {
 type ADDomain struct {
 	FQDN               string `json:"fqdn,omitempty"`
 	OrganizationalUnit string `json:"organizational_unit,omitempty"`
+}
+
+type SVMDNS struct {
+	Domains []string `json:"domains,omitempty"`
+	Servers []string `json:"servers,omitempty"`
 }
 
 // This is the JSON representation of a Qtree for REST Create / Update
