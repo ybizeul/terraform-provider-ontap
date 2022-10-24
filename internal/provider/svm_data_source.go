@@ -27,43 +27,52 @@ type SVMDataSource struct {
 
 // ExampleDataSourceModel describes the data source data model.
 type SVMDataSourceModel struct {
-	UUID                types.String               `tfsdk:"uuid"`
-	Aggregates          []AggregateDataSourceModel `tfsdk:"aggregates"`
-	AggregatesDelegated types.Bool                 `tfsdk:"aggregates_delegated"`
-	Certificate         types.String               `tfsdk:"certificate"`
-	CIFS                *CIFSDataSourceModel       `tfsdk:"cifs"`
-	Comment             types.String               `tfsdk:"comment"`
-	DNS                 *DNSDataSourceModel        `tfsdk:"dns"`
-	FCInterfaces        types.List                 `tfsdk:"fc_interfaces"`
-	FCP                 types.Bool                 `tfsdk:"fcp"`
-	IPInterfaces        types.List                 `tfsdk:"ip_interfaces"`
-	IPSpace             types.Map                  `tfsdk:"ipspace"`
-	ISCSI               types.Bool                 `tfsdk:"iscsi"`
-	Language            types.String               `tfsdk:"language"`
-	LDAP                types.Map                  `tfsdk:"ldap"`
-	Name                types.String               `tfsdk:"name"`
-	NFS                 types.Bool                 `tfsdk:"nfs"`
-	NIS                 types.Map                  `tfsdk:"nis"`
-	NVME                types.Bool                 `tfsdk:"nvme"`
-	NSSwitch            types.Map                  `tfsdk:"nsswitch"`
-	Routes              types.List                 `tfsdk:"routes"`
-	S3                  types.Map                  `tfsdk:"s3"`
-	Snapmirror          types.Map                  `tfsdk:"snapmirror"`
-	SnapshotPolicy      types.Map                  `tfsdk:"snapshot_policy"`
-	State               types.String               `tfsdk:"state"`
-	Subtype             types.String               `tfsdk:"subtype"`
+	UUID                types.String                 `tfsdk:"uuid"`
+	Aggregates          []AggregateDataSourceModel   `tfsdk:"aggregates"`
+	AggregatesDelegated types.Bool                   `tfsdk:"aggregates_delegated"`
+	Certificate         types.String                 `tfsdk:"certificate"`
+	CIFS                *CIFSDataSourceModel         `tfsdk:"cifs"`
+	Comment             types.String                 `tfsdk:"comment"`
+	DNS                 *DNSDataSourceModel          `tfsdk:"dns"`
+	FCInterfaces        []FCInterfaceDataSourceModel `tfsdk:"fc_interfaces"`
+	FCP                 types.Bool                   `tfsdk:"fcp"`
+	IPInterfaces        []IPInterfaceDataSourceModel `tfsdk:"ip_interfaces"`
+	IPSpace             types.Map                    `tfsdk:"ipspace"`
+	ISCSI               types.Bool                   `tfsdk:"iscsi"`
+	Language            types.String                 `tfsdk:"language"`
+	LDAP                types.Map                    `tfsdk:"ldap"`
+	Name                types.String                 `tfsdk:"name"`
+	NFS                 types.Bool                   `tfsdk:"nfs"`
+	NIS                 types.Map                    `tfsdk:"nis"`
+	NVME                types.Bool                   `tfsdk:"nvme"`
+	NSSwitch            types.Map                    `tfsdk:"nsswitch"`
+	Routes              types.List                   `tfsdk:"routes"`
+	S3                  types.Map                    `tfsdk:"s3"`
+	Snapmirror          types.Map                    `tfsdk:"snapmirror"`
+	SnapshotPolicy      types.Map                    `tfsdk:"snapshot_policy"`
+	State               types.String                 `tfsdk:"state"`
+	Subtype             types.String                 `tfsdk:"subtype"`
 }
 
+/*
+****************************
+
+	aggregates
+
+*****************************
+*/
 type AggregateDataSourceModel struct {
 	Name types.String `tfsdk:"name"`
 	UUID types.String `tfsdk:"uuid"`
 }
 
-type CIFSDataSourceModel struct {
-	ADDomain *ADDomainDataSourceModel `tfsdk:"ad_domain"`
-	Enabled  types.Bool               `tfsdk:"enabled"`
-	Name     *types.String            `tfsdk:"name"`
-}
+/*
+****************************
+
+	cifs
+
+*****************************
+*/
 
 func NewCIFSDataSourceModel() CIFSDataSourceModel {
 	return CIFSDataSourceModel{
@@ -71,6 +80,12 @@ func NewCIFSDataSourceModel() CIFSDataSourceModel {
 		Enabled:  types.Bool{Null: true},
 		Name:     &types.String{Null: true},
 	}
+}
+
+type CIFSDataSourceModel struct {
+	ADDomain *ADDomainDataSourceModel `tfsdk:"ad_domain"`
+	Enabled  types.Bool               `tfsdk:"enabled"`
+	Name     *types.String            `tfsdk:"name"`
 }
 
 type ADDomainDataSourceModel struct {
@@ -81,6 +96,59 @@ type ADDomainDataSourceModel struct {
 type DNSDataSourceModel struct {
 	Domains []types.String `tfsdk:"domains"`
 	Servers []types.String `tfsdk:"servers"`
+}
+
+/*
+****************************
+
+	fc_interfaces
+
+*****************************
+*/
+func NewFCInterfaceDataSourceModel() FCInterfaceDataSourceModel {
+	return FCInterfaceDataSourceModel{
+		Name: types.String{Null: true},
+		UUID: types.String{Null: true},
+	}
+}
+
+type FCInterfaceDataSourceModel struct {
+	DataProtocal types.String `tfsdk:"data_protocol"`
+	Name         types.String `tfsdk:"name"`
+	UUID         types.String `tfsdk:"uuid"`
+}
+
+/*
+****************************
+
+	ip_interfaces
+
+*****************************
+*/
+
+func NewIPInterfaceDataSourceModel() IPInterfaceDataSourceModel {
+	return IPInterfaceDataSourceModel{
+		IP: IPInterfaceIPDataSourceModel{
+			Address: types.String{Null: true},
+			Netmask: types.String{Null: true},
+		},
+		Name:          types.String{Null: true},
+		ServicePolicy: types.String{Null: true},
+		UUID:          types.String{Null: true},
+	}
+}
+
+type IPInterfaceDataSourceModel struct {
+	IP            IPInterfaceIPDataSourceModel `tfsdk:"ip"`
+	Name          types.String                 `tfsdk:"name"`
+	ServicePolicy types.String                 `tfsdk:"service_policy"`
+	Services      []types.String               `tfsdk:"services"`
+	UUID          types.String                 `tfsdk:"uuid"`
+}
+
+type IPInterfaceIPDataSourceModel struct {
+	Address types.String `tfsdk:"address"`
+	Netmask types.String `tfsdk:"netmask"`
 }
 
 func (d *SVMDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -132,32 +200,6 @@ func (d *SVMDataSource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagn
 						},
 					},
 				},
-				// "cifs": {
-				// 	Optional: true,
-				// 	Attributes: tfsdk.MapNestedAttributes(map[string]tfsdk.Attribute{
-				// 		"ad_domain": {
-				// 			Required: true,
-				// 			Attributes: tfsdk.MapNestedAttributes(map[string]tfsdk.Attribute{
-				// 				"fqdn": {
-				// 					Type:     types.StringType,
-				// 					Required: true,
-				// 				},
-				// 				"organizational_unit": {
-				// 					Type:     types.StringType,
-				// 					Required: true,
-				// 				},
-				// 			}),
-				// 		},
-				// 		"enabled": {
-				// 			Type:     types.BoolType,
-				// 			Required: true,
-				// 		},
-				// 		"name": {
-				// 			Type:     types.StringType,
-				// 			Required: true,
-				// 		},
-				// 	}),
-				// },
 				"comment": {
 					Type:     types.StringType,
 					Optional: true,
@@ -170,59 +212,18 @@ func (d *SVMDataSource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagn
 							"servers": types.ListType{ElemType: types.StringType},
 						},
 					},
-					// Attributes: tfsdk.MapNestedAttributes(map[string]tfsdk.Attribute{
-					// 	"domains": {
-					// 		Required: true,
-					// 		Type: types.ListType{
-					// 			ElemType: types.StringType,
-					// 		},
-					// 	},
-					// 	"servers": {
-					// 		Required: true,
-					// 		Type: types.ListType{
-					// 			ElemType: types.StringType,
-					// 		},
-					// 	},
-					// }),
 				},
 				"fc_interfaces": {
 					Optional: true,
-					Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
-						"data_protocol": {
-							Type:     types.StringType,
-							Required: true,
+					Type: types.ListType{
+						ElemType: types.ObjectType{
+							AttrTypes: map[string]attr.Type{
+								"data_protocol": types.StringType,
+								"name":          types.StringType,
+								"uuid":          types.StringType,
+							},
 						},
-						"location": {
-							Required: true,
-							Attributes: tfsdk.MapNestedAttributes(map[string]tfsdk.Attribute{
-								"port": {
-									Required: true,
-									Attributes: tfsdk.MapNestedAttributes(map[string]tfsdk.Attribute{
-										"name": {
-											Type:     types.StringType,
-											Required: true,
-										},
-										"node": {
-											Type:     types.StringType,
-											Required: true,
-										},
-										"uuid": {
-											Type:     types.StringType,
-											Required: true,
-										},
-									}),
-								},
-							}),
-						},
-						"name": {
-							Type:     types.StringType,
-							Required: true,
-						},
-						"uuid": {
-							Type:     types.StringType,
-							Required: true,
-						},
-					}),
+					},
 				},
 				"fcp": {
 					Type:     types.BoolType,
@@ -230,70 +231,24 @@ func (d *SVMDataSource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagn
 				},
 				"ip_interfaces": {
 					Optional: true,
-					Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
-						"ip": {
-							Required: true,
-							Attributes: tfsdk.MapNestedAttributes(map[string]tfsdk.Attribute{
-								"address": {
-									Type:     types.StringType,
-									Required: true,
+					Type: types.ListType{
+						ElemType: types.ObjectType{
+							AttrTypes: map[string]attr.Type{
+								"ip": types.ObjectType{
+									AttrTypes: map[string]attr.Type{
+										"address": types.StringType,
+										"netmask": types.StringType,
+									},
 								},
-								"netmask": {
-									Type:     types.StringType,
-									Required: true,
+								"name":           types.StringType,
+								"service_policy": types.StringType,
+								"services": types.ListType{
+									ElemType: types.StringType,
 								},
-							}),
-						},
-						"location": {
-							Required: true,
-							Attributes: tfsdk.MapNestedAttributes(map[string]tfsdk.Attribute{
-								"broadcast_domain": {
-									Required: true,
-									Attributes: tfsdk.MapNestedAttributes(map[string]tfsdk.Attribute{
-										"name": {
-											Type:     types.StringType,
-											Required: true,
-										},
-										"uuid": {
-											Type:     types.StringType,
-											Required: true,
-										},
-									}),
-								},
-								"home_node": {
-									Required: true,
-									Attributes: tfsdk.MapNestedAttributes(map[string]tfsdk.Attribute{
-										"name": {
-											Type:     types.StringType,
-											Required: true,
-										},
-										"uuid": {
-											Type:     types.StringType,
-											Required: true,
-										},
-									}),
-								},
-							}),
-						},
-						"name": {
-							Type:     types.StringType,
-							Optional: true,
-						},
-						"service_policy": {
-							Type:     types.StringType,
-							Optional: true,
-						},
-						"services": {
-							Type: types.ListType{
-								ElemType: types.StringType,
+								"uuid": types.StringType,
 							},
-							Optional: true,
 						},
-						"uuid": {
-							Type:     types.StringType,
-							Required: true,
-						},
-					}),
+					},
 				},
 				"ipspace": {
 					Optional: true,
@@ -561,6 +516,9 @@ func (d *SVMDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 		data.CIFS = &cifs
 	}
 
+	// Certificate
+
+	data.Certificate = types.String{Value: SVM.Certificate.UUID}
 	// This code commented implements CIFS settings with types.Object but the syntax
 	// of repeated AttrTypes didn't look like a good pattern.
 	// Instead, we replaced :
@@ -615,8 +573,47 @@ func (d *SVMDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 		data.DNS.Servers = append(data.DNS.Servers, types.String{Value: d})
 	}
 
+	// FC Interfaces
+	for _, i := range SVM.FCInterfaces {
+		iface := FCInterfaceDataSourceModel{
+			DataProtocal: types.String{Value: i.DataProtocal},
+			Name:         types.String{Value: i.Name},
+			UUID:         types.String{Value: i.UUID},
+		}
+
+		data.FCInterfaces = append(data.FCInterfaces, iface)
+	}
+
+	// FCP
+	data.FCP = types.Bool{Value: SVM.FCP.Enabled}
+
 	// Name
 	data.Name = types.String{Value: SVM.Name}
+
+	// IP Interfaces
+	for _, i := range SVM.IPInterfaces {
+		iface := NewIPInterfaceDataSourceModel()
+
+		iface.IP.Address = types.String{Value: i.IP.Address}
+
+		if i.IP.Netmask != nil {
+			iface.IP.Netmask = types.String{Value: *i.IP.Netmask}
+		}
+
+		iface.Name = types.String{Value: i.Name}
+
+		if i.ServicePolicy != nil {
+			iface.ServicePolicy = types.String{Value: *i.ServicePolicy}
+		}
+
+		iface.UUID = types.String{Value: i.UUID}
+
+		for _, s := range i.Services {
+			iface.Services = append(iface.Services, types.String{Value: s})
+		}
+
+		data.IPInterfaces = append(data.IPInterfaces, iface)
+	}
 
 	// Write logs using the tflog package
 	// Documentation: https://terraform.io/plugin/log

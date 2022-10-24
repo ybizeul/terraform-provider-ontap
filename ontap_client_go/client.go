@@ -2,6 +2,7 @@ package ontap
 
 import (
 	"bytes"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -72,7 +73,14 @@ func (e *Error404) Error() string {
 }
 
 // NewClient -
-func NewClient(host, username, password *string) (*Client, error) {
+func NewClient(host, username, password *string, ignoreSSLErrors bool) (*Client, error) {
+	if ignoreSSLErrors {
+		http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+		_, err := http.Get("https://golang.org/")
+		if err != nil {
+			fmt.Println(err)
+		}
+	}
 	c := Client{
 		HTTPClient: &http.Client{Timeout: 10 * time.Second},
 		// Default Hashicups URL

@@ -5,6 +5,7 @@ example.tf
 terraform.tfplan
 terraform.tfstate
 .terraform.tfstate.lock.info
+*.private.*
 bin/
 dist/
 modules-dev/

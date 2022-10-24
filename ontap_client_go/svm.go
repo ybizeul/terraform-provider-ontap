@@ -9,15 +9,17 @@ import (
 type SVM struct {
 	UUID string `json:"uuid,omitempty"`
 
-	Name                string    `json:"name,omitempty"`
-	Aggregates          []UUIDRef `json:"aggregates,omitempty"`
-	AggregatesDelegated bool      `json:"aggregates_delegated,omitempty"`
-	CIFS                *SVMCIFS  `json:"cifs,omitempty"`
-	Comment             string    `json:"comment"`
-	DNS                 SVMDNS    `json:"dns"`
-	CertificateJSON     UUIDRef   `json:"certificate,omitempty"`
-	Certificate         string
-	IPSpace             UUIDRef `json:"ipspace,omitempty"`
+	Name                string        `json:"name,omitempty"`
+	Aggregates          []UUIDRef     `json:"aggregates,omitempty"`
+	AggregatesDelegated bool          `json:"aggregates_delegated,omitempty"`
+	Certificate         UUIDRef       `json:"certificate,omitempty"`
+	CIFS                *SVMCIFS      `json:"cifs,omitempty"`
+	Comment             string        `json:"comment"`
+	DNS                 SVMDNS        `json:"dns"`
+	FCInterfaces        []FCInterface `json:"fc_interfaces"`
+	FCP                 FCP           `json:"fcp"`
+	IPInterfaces        []IPInterface `json:"ip_interfaces"`
+	IPSpace             UUIDRef       `json:"ipspace,omitempty"`
 }
 
 type SVMCIFS struct {
@@ -34,6 +36,28 @@ type ADDomain struct {
 type SVMDNS struct {
 	Domains []string `json:"domains,omitempty"`
 	Servers []string `json:"servers,omitempty"`
+}
+
+type FCInterface struct {
+	DataProtocal string `json:"data_protocol"`
+	Name         string `json:"name"`
+	UUID         string `json:"uuid"`
+}
+
+type FCP struct {
+	Enabled bool `json:"enabled"`
+}
+type IPInterface struct {
+	IP            IPInterfaceIP `json:"ip"`
+	Name          string        `json:"name"`
+	ServicePolicy *string       `json:"service_policy"`
+	Services      []string      `json:"services"`
+	UUID          string        `json:"uuid"`
+}
+
+type IPInterfaceIP struct {
+	Address string  `json:"address"`
+	Netmask *string `json:"netmask"`
 }
 
 // This is the JSON representation of a Qtree for REST Create / Update
@@ -74,7 +98,6 @@ func (c *Client) GetSVM(uuid string) (*SVM, error) {
 	svm := SVM{}
 
 	err = json.Unmarshal(body, &svm)
-	svm.Certificate = svm.CertificateJSON.UUID
 
 	if err != nil {
 		return nil, err

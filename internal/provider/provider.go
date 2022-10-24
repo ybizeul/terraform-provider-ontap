@@ -26,9 +26,10 @@ type ONTAPProvider struct {
 
 // ONTAPProviderModel describes the provider data model.
 type ONTAPProviderModel struct {
-	Host     types.String `tfsdk:"hostname"`
-	Username types.String `tfsdk:"username"`
-	Password types.String `tfsdk:"password"`
+	Host            types.String `tfsdk:"hostname"`
+	Username        types.String `tfsdk:"username"`
+	Password        types.String `tfsdk:"password"`
+	IgnoreSSLErrors types.Bool   `tfsdk:"ignore_ssl_errors"`
 }
 
 func (p *ONTAPProvider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
@@ -56,6 +57,11 @@ func (p *ONTAPProvider) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagn
 				Required:            true,
 				Sensitive:           true,
 			},
+			"ignore_ssl_errors": {
+				MarkdownDescription: "Ignore SSL Errors",
+				Type:                types.BoolType,
+				Optional:            true,
+			},
 		},
 	}, nil
 }
@@ -73,8 +79,11 @@ func (p *ONTAPProvider) Configure(ctx context.Context, req provider.ConfigureReq
 	// if data.Endpoint.IsNull() { /* ... */ }
 
 	// Example client configuration for data sources and resources
+	if data.IgnoreSSLErrors.Null {
+		data.IgnoreSSLErrors.Value = false
+	}
 
-	client, _ := ontap.NewClient(&data.Host.Value, &data.Username.Value, &data.Password.Value)
+	client, _ := ontap.NewClient(&data.Host.Value, &data.Username.Value, &data.Password.Value, data.IgnoreSSLErrors.Value)
 
 	resp.DataSourceData = client
 	resp.ResourceData = client

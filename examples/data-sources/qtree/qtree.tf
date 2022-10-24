@@ -8,7 +8,7 @@ terraform {
 }
 
 provider "ontap" {
-  hostname = "cluster1.lab.tynsoe.org"
+  hostname = "cluster.company.lan"
   username = "admin"
   password = "Netapp01"
 }
@@ -32,11 +32,3 @@ resource "ontap_qtree" "qtree2" {
 output "qtree" {
  value = "(${resource.ontap_qtree.qtree1.id}) ${resource.ontap_qtree.qtree1.name} ${resource.ontap_qtree.qtree1.path}\n(${resource.ontap_qtree.qtree2.id}) ${resource.ontap_qtree.qtree2.name} ${resource.ontap_qtree.qtree2.path}"
 }
-
-# data "ontap_qtree" "qtree1" {
-#   uuid = "023b1262-6a22-4134-8972-33b370e5474c/2"
-# }
-
-# output "test" {
-#   value = data.ontap_qtree.qtree1
-# }
