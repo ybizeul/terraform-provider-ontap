@@ -89,6 +89,7 @@ func (p *ONTAPProvider) Resources(ctx context.Context) []func() resource.Resourc
 func (p *ONTAPProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
 		NewQtreeDataSource,
+		NewSVMDataSource,
 	}
 }
 
