@@ -540,11 +540,21 @@ func (d *SVMDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 				OrganizationalUnit: types.String{Value: SVM.CIFS.ADDomain.OrganizationalUnit},
 			}
 		}
-		tflog.Error(ctx, "__DEBUG", map[string]interface{}{
-			"data.CIFS": cifs,
-		})
+
 		data.CIFS = &cifs
 	}
+
+	// This code commented implements CIFS settings with types.Object but the syntax
+	// of repeated AttrTypes didn't look like a good pattern.
+	// Instead, we replaced :
+	// CIFS                types.Object       `tfsdk:"cifs"`
+	//
+	// by
+	//
+	// CIFS                *CIFSDataSourceModel       `tfsdk:"cifs"`
+	//
+	// in the model
+	//
 	// if SVM.CIFS != nil {
 	// 	cifs := types.Object{
 	// 		Attrs: map[string]attr.Value{
@@ -574,14 +584,9 @@ func (d *SVMDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 	// 	}
 	// 	data.CIFS = cifs
 	// }
-	// data.CIFS = types.Object{"ad_domain": types.Object{
-	// 	"fqdn":               types.String{Value: SVM.CIFS.ADDomain.FQDN},
-	// 	"organizational_nit": types.String{Value: SVM.CIFS.ADDomain.OrganizationalUnit},
-	// }}
-
-	//data.CIFS = &cifs
 
 	data.AggregatesDelegated = types.Bool{Value: SVM.AggregatesDelegated}
+
 	data.Name = types.String{Value: SVM.Name}
 
 	// Write logs using the tflog package
@@ -590,5 +595,4 @@ func (d *SVMDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-	//resp.State.SetAttribute(ctx, path.Root("cifs"), cifs)
 }
