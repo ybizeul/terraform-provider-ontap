@@ -92,6 +92,7 @@ func (p *ONTAPProvider) Configure(ctx context.Context, req provider.ConfigureReq
 func (p *ONTAPProvider) Resources(ctx context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
 		NewQtreeResource,
+		NewSVMResource,
 	}
 }
 

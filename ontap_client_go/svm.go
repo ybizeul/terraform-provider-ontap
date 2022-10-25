@@ -1,24 +1,25 @@
 package ontap
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"net/http"
 )
 
 type SVM struct {
-	UUID string `json:"uuid,omitempty"`
+	UUID *string `json:"uuid,omitempty"`
 
 	Name                string          `json:"name,omitempty"`
 	Aggregates          []UUIDRef       `json:"aggregates,omitempty"`
 	AggregatesDelegated bool            `json:"aggregates_delegated,omitempty"`
 	Certificate         UUIDRef         `json:"certificate,omitempty"`
 	CIFS                *SVMCIFS        `json:"cifs,omitempty"`
-	Comment             string          `json:"comment"`
-	DNS                 SVMDNS          `json:"dns"`
-	FCInterfaces        []FCInterface   `json:"fc_interfaces"`
-	FCP                 FCP             `json:"fcp"`
-	IPInterfaces        []IPInterface   `json:"ip_interfaces"`
+	Comment             string          `json:"comment,omitempty"`
+	DNS                 *SVMDNS         `json:"dns,omitempty"`
+	FCInterfaces        []FCInterface   `json:"fc_interfaces,omitempty"`
+	FCP                 *FCP            `json:"fcp,omitempty"`
+	IPInterfaces        []IPInterface   `json:"ip_interfaces,omitempty"`
 	IPSpace             UUIDRef         `json:"ipspace,omitempty"`
 	ISCSI               ISCSI           `json:"iscsi,omitempty"`
 	Language            string          `json:"language,omitempty"`
@@ -131,17 +132,72 @@ type SnapshotPolicy struct {
 	UUID string `json:"uuid,omitempty"`
 }
 
-func (c *Client) GetSVM(uuid string) (*SVM, error) {
-	// s := strings.Split(uuid, "/")
+type SVMSearchResult struct {
+	NumRecords int64    `json:"num_records,omitempty"`
+	Records    []Record `json:"records,omitempty"`
+}
+type Record struct {
+	UUID string `json:"uuid,omitempty"`
+	Name string `json:"name,omitempty"`
+}
 
-	req, err := http.NewRequest("GET", fmt.Sprintf("https://%s/api/svm/svms/%s", c.HostURL, uuid), nil)
+func (c *Client) CreateSVM(svm *SVM) (*SVM, error) {
+
+	req_SVMJSON, err := json.Marshal(svm)
+
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", fmt.Sprintf("https://%s/api/svm/svms?return_records=true", c.HostURL), bytes.NewBuffer(req_SVMJSON))
+
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = c.doRequest(req)
+
+	if err != nil {
+		return nil, err
+	}
+
+	new_svm, err := c.GetSVM(nil, &svm.Name)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return new_svm, nil
+}
+
+func (c *Client) GetSVM(uuid *string, name *string) (*SVM, error) {
+
+	if name != nil {
+		req_id, err := http.NewRequest("GET", fmt.Sprintf("https://%s/api/svm/svms?name=%s", c.HostURL, *name), nil)
+
+		if err != nil {
+			return nil, err
+		}
+
+		body, err := c.doRequest(req_id)
+
+		if err != nil {
+			return nil, err
+		}
+
+		svm_result := SVMSearchResult{}
+		json.Unmarshal(body, &svm_result)
+		uuid = &svm_result.Records[0].UUID
+	}
+
+	req, err := http.NewRequest("GET", fmt.Sprintf("https://%s/api/svm/svms/%s", c.HostURL, *uuid), nil)
 
 	if err != nil {
 		return nil, err
 	}
 
 	body, err := c.doRequest(req)
-	fmt.Print(body)
+
 	if err != nil {
 		return nil, err
 	}
@@ -155,4 +211,54 @@ func (c *Client) GetSVM(uuid string) (*SVM, error) {
 	}
 
 	return &svm, nil
+}
+
+func (c *Client) UpdateSVM(svm *SVM) (*SVM, error) {
+
+	uuid := svm.UUID
+	svm.UUID = nil
+
+	svm.FCP = nil
+	req_body, err := json.Marshal(svm)
+
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("PATCH", fmt.Sprintf("https://%s/api/svm/svms/%s", c.HostURL, *uuid), bytes.NewBuffer(req_body))
+
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = c.doRequest(req)
+
+	if err != nil {
+		return nil, err
+	}
+
+	svm_result, err := c.GetSVM(uuid, nil)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return svm_result, nil
+}
+
+func (c *Client) DeleteSVM(svm *SVM) error {
+
+	req, err := http.NewRequest("DELETE", fmt.Sprintf("https://%s/api/svm/svms/%s", c.HostURL, *svm.UUID), nil)
+
+	if err != nil {
+		return err
+	}
+
+	_, err = c.doRequest(req)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

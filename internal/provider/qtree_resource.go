@@ -151,9 +151,6 @@ func (r *QtreeResource) Create(ctx context.Context, req resource.CreateRequest, 
 	}
 	// Write logs using the tflog package
 	// Documentation: https://terraform.io/plugin/log
-	tflog.Trace(ctx, "created a QTREE +%v", map[string]interface{}{
-		"uuid": qtree.UUID,
-	})
 
 	data.Name = types.String{Value: created_qtree.Name}
 	data.Id = types.String{Value: created_qtree.UUID}

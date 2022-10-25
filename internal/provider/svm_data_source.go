@@ -37,7 +37,7 @@ type SVMDataSourceModel struct {
 	FCInterfaces        []FCInterfaceDataSourceModel   `tfsdk:"fc_interfaces"`
 	FCP                 types.Bool                     `tfsdk:"fcp"`
 	IPInterfaces        []IPInterfaceDataSourceModel   `tfsdk:"ip_interfaces"`
-	IPSpace             *IPSpaceDataModel              `tfsdk:"ipspace"`
+	IPSpace             *IPSpaceDataSourceModel        `tfsdk:"ipspace"`
 	ISCSI               types.Bool                     `tfsdk:"iscsi"`
 	Language            types.String                   `tfsdk:"language"`
 	LDAP                *LDAPDataSourceModel           `tfsdk:"ldap"`
@@ -151,7 +151,7 @@ type IPInterfaceIPDataSourceModel struct {
 	Netmask types.String `tfsdk:"netmask"`
 }
 
-type IPSpaceDataModel struct {
+type IPSpaceDataSourceModel struct {
 	Name types.String `tfsdk:"name"`
 	UUID types.String `tfsdk:"uuid"`
 }
@@ -541,14 +541,14 @@ func (d *SVMDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 
 	// If applicable, this is a great opportunity to initialize any necessary
 	// provider client data and make a call using it.
-	SVM, err := d.client.GetSVM(data.UUID.Value)
+	SVM, err := d.client.GetSVM(&data.UUID.Value, nil)
 	if err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read SVM, got error: %s", err))
 		return
 	}
 
 	// UUID
-	data.UUID = types.String{Value: SVM.UUID}
+	data.UUID = types.String{Value: *SVM.UUID}
 
 	// Aggregates
 	data.Aggregates = []AggregateDataSourceModel{}
@@ -629,14 +629,15 @@ func (d *SVMDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 	data.Comment = types.String{Value: SVM.Comment}
 
 	// DNS
-	data.DNS = &DNSDataSourceModel{}
-	for _, d := range SVM.DNS.Domains {
-		data.DNS.Domains = append(data.DNS.Domains, types.String{Value: d})
+	if SVM.DNS != nil {
+		data.DNS = &DNSDataSourceModel{}
+		for _, d := range SVM.DNS.Domains {
+			data.DNS.Domains = append(data.DNS.Domains, types.String{Value: d})
+		}
+		for _, d := range SVM.DNS.Servers {
+			data.DNS.Servers = append(data.DNS.Servers, types.String{Value: d})
+		}
 	}
-	for _, d := range SVM.DNS.Servers {
-		data.DNS.Servers = append(data.DNS.Servers, types.String{Value: d})
-	}
-
 	// FC Interfaces
 	for _, i := range SVM.FCInterfaces {
 		iface := FCInterfaceDataSourceModel{
@@ -681,7 +682,7 @@ func (d *SVMDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 
 	// IPSpace
 
-	data.IPSpace = &IPSpaceDataModel{
+	data.IPSpace = &IPSpaceDataSourceModel{
 		Name: types.String{Value: SVM.IPSpace.Name},
 		UUID: types.String{Value: SVM.IPSpace.UUID},
 	}
