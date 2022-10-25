@@ -9,25 +9,30 @@ import (
 type SVM struct {
 	UUID string `json:"uuid,omitempty"`
 
-	Name                string        `json:"name,omitempty"`
-	Aggregates          []UUIDRef     `json:"aggregates,omitempty"`
-	AggregatesDelegated bool          `json:"aggregates_delegated,omitempty"`
-	Certificate         UUIDRef       `json:"certificate,omitempty"`
-	CIFS                *SVMCIFS      `json:"cifs,omitempty"`
-	Comment             string        `json:"comment"`
-	DNS                 SVMDNS        `json:"dns"`
-	FCInterfaces        []FCInterface `json:"fc_interfaces"`
-	FCP                 FCP           `json:"fcp"`
-	IPInterfaces        []IPInterface `json:"ip_interfaces"`
-	IPSpace             UUIDRef       `json:"ipspace,omitempty"`
-	ISCSI               ISCSI         `json:"iscsi,omitempty"`
-	Language            string        `json:"language,omitempty"`
-	LDAP                *LDAP         `json:"ldap,omitempty"`
-	NFS                 *NFS          `json:"nfs,omitempty"`
-	NIS                 *NIS          `json:"nis,omitempty"`
-	NSSwitch            *NSSwitch     `json:"nsswitch,omitempty"`
-	NVME                *NVME         `json:"nvme,omitempty"`
-	Routes              []Route       `json:"routes,omitempty"`
+	Name                string          `json:"name,omitempty"`
+	Aggregates          []UUIDRef       `json:"aggregates,omitempty"`
+	AggregatesDelegated bool            `json:"aggregates_delegated,omitempty"`
+	Certificate         UUIDRef         `json:"certificate,omitempty"`
+	CIFS                *SVMCIFS        `json:"cifs,omitempty"`
+	Comment             string          `json:"comment"`
+	DNS                 SVMDNS          `json:"dns"`
+	FCInterfaces        []FCInterface   `json:"fc_interfaces"`
+	FCP                 FCP             `json:"fcp"`
+	IPInterfaces        []IPInterface   `json:"ip_interfaces"`
+	IPSpace             UUIDRef         `json:"ipspace,omitempty"`
+	ISCSI               ISCSI           `json:"iscsi,omitempty"`
+	Language            string          `json:"language,omitempty"`
+	LDAP                *LDAP           `json:"ldap,omitempty"`
+	NFS                 *NFS            `json:"nfs,omitempty"`
+	NIS                 *NIS            `json:"nis,omitempty"`
+	NSSwitch            *NSSwitch       `json:"nsswitch,omitempty"`
+	NVME                *NVME           `json:"nvme,omitempty"`
+	Routes              []Route         `json:"routes,omitempty"`
+	S3                  *S3             `json:"s3,omitempty"`
+	Snapmirror          *Snapmirror     `json:"snapmirror,omitempty"`
+	SnapshotPolicy      *SnapshotPolicy `json:"snapshot_policy,omitempty"`
+	State               string          `json:"state,omitempty"`
+	Subtype             string          `json:"subtype,omitempty"`
 }
 
 type SVMCIFS struct {
@@ -109,6 +114,21 @@ type RouteDestination struct {
 	Address string `json:"address,omitempty"`
 	Family  string `json:"family,omitempty"`
 	Netmask string `json:"netmask,omitempty"`
+}
+
+type S3 struct {
+	Enabled bool    `json:"enabled,omitempty"`
+	Name    *string `json:"name,omitempty"`
+}
+
+type Snapmirror struct {
+	IsProtected           bool  `json:"is_protected,omitempty"`
+	ProtectedVolumesCount int64 `json:"protected_volulumes_count,omitempty"`
+}
+
+type SnapshotPolicy struct {
+	Name string `json:"name,omitempty"`
+	UUID string `json:"uuid,omitempty"`
 }
 
 func (c *Client) GetSVM(uuid string) (*SVM, error) {

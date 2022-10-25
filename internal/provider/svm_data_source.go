@@ -232,11 +232,50 @@ type RouteDestinationDataSourceModel struct {
 	Netmask types.String `tfsdk:"netmask"`
 }
 
-type S3DataSourceModel struct{}
+/*
+****************************
 
-type SnapmirrorDataSourceModel struct{}
+	s3
 
-type SnapshotPolicyDataSourceModel struct{}
+*****************************
+*/
+func NewS3DataSourceModel() S3DataSourceModel {
+	return S3DataSourceModel{
+		Enabled: types.Bool{Value: false},
+		Name:    types.String{Null: true},
+	}
+}
+
+type S3DataSourceModel struct {
+	Enabled types.Bool   `tfsdk:"enabled"`
+	Name    types.String `tfsdk:"name"`
+}
+
+/*
+****************************
+
+	snapmirror
+
+*****************************
+*/
+
+type SnapmirrorDataSourceModel struct {
+	IsProtected           types.Bool  `tfsdk:"is_protected"`
+	ProtectedVolumesCount types.Int64 `tfsdk:"protected_volumes_count"`
+}
+
+/*
+****************************
+
+	snapshot policy
+
+*****************************
+*/
+
+type SnapshotPolicyDataSourceModel struct {
+	Name types.String `tfsdk:"name"`
+	UUID types.String `tfsdk:"uuid"`
+}
 
 func (d *SVMDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_svm"
@@ -720,6 +759,40 @@ func (d *SVMDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 		routes = append(routes, route)
 	}
 	data.Routes = routes
+
+	// S3
+	if SVM.S3 != nil {
+		s3 := NewS3DataSourceModel()
+
+		s3.Enabled = types.Bool{Value: SVM.S3.Enabled}
+
+		if SVM.S3.Name != nil {
+			s3.Name = types.String{Value: *SVM.S3.Name}
+		}
+
+		data.S3 = &s3
+	}
+
+	// Snapmirror
+	if SVM.Snapmirror != nil {
+		data.Snapmirror = &SnapmirrorDataSourceModel{
+			IsProtected:           types.Bool{Value: SVM.Snapmirror.IsProtected},
+			ProtectedVolumesCount: types.Int64{Value: SVM.Snapmirror.ProtectedVolumesCount},
+		}
+	}
+
+	// Snapshot Policy
+	if SVM.SnapshotPolicy != nil {
+		data.SnapshotPolicy = &SnapshotPolicyDataSourceModel{
+			Name: types.String{Value: SVM.SnapshotPolicy.Name},
+			UUID: types.String{Value: SVM.SnapshotPolicy.UUID},
+		}
+	}
+	// State
+	data.State = types.String{Value: SVM.State}
+
+	// Subtype
+	data.Subtype = types.String{Value: SVM.Subtype}
 
 	// Write logs using the tflog package
 	// Documentation: https://terraform.io/plugin/log
